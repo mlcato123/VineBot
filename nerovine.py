@@ -9,16 +9,17 @@ import json
 import firebase_admin
 import datetime
 import time
+import random
 from firebase_admin import storage
 from firebase_admin import credentials
 from firebase_admin import db
 from telebot import types
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 
-cred = credentials.Certificate('grapi-47cdc-firebase-adminsdk-w2zca-e36e2325ca.json')
+cred = credentials.Certificate("myqwer-9abe3-firebase-adminsdk-vzw4u-4b396b9c62.json")
 firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://grapi-47cdc-default-rtdb.firebaseio.com/',
-    'storageBucket': 'grapi-47cdc.appspot.com'
+    'databaseURL': 'https://myqwer-9abe3-default-rtdb.asia-southeast1.firebasedatabase.app/',
+    'storageBucket': 'myqwer-9abe3.appspot.com'
 })
 
 total_sectors = 27
@@ -26,81 +27,81 @@ sectors_per_page = 9
 total_vines = 9
 vines_per_page = 9
 photo_data = {}
-admin_ids = [853789956, 823556234]
-tconv = lambda x: time.strftime("%Y", time.localtime(x)) # ÓÌ‚ÂÚ‡ˆËˇ ‰‡Ú˚ ‚ ˜ËÚ‡·ÂÎ¸Ì˚È ‚Ë‰
+admin_ids = [853789956, 1822768141]
+tconv = lambda x: time.strftime("%Y", time.localtime(x)) #–ö–æ–Ω–≤–µ—Ä—Ç–∞—Ü–∏—è –¥–∞—Ç—ã –≤ —á–∏—Ç–∞–±–µ–ª—å–Ω—ã–π –≤–∏–¥
 
-# √ÂÌÂ‡ˆËˇ ÍÌÓÔÓÍ ‰Îˇ ÚÂÍÛ˘ÂÈ ÒÚ‡ÌËˆ˚
+# –ì–µ–Ω–µ—Ä–∞—Ü–∏—è –∫–Ω–æ–ø–æ–∫ –¥–ª—è —Ç–µ–∫—É—â–µ–π —Å—Ç—Ä–∞–Ω–∏—Ü—ã
 def generate_buttons(page, total_items, items_per_page):
     buttons = []
     start_item = (page - 1) * items_per_page + 1
     end_item = min(start_item + items_per_page, total_items + 1)
     for item in range(start_item, end_item):
-        button = KeyboardButton(f'ÕÓÏÂ {item}')
+        button = KeyboardButton(f'–ù–æ–º–µ—Ä {item}')
         buttons.append(button)
     return buttons
 
 
 def upload_photo_to_storage(photo_path):
-    # «‡„ÛÁÍ‡ ÙÓÚÓ„‡ÙËË ‚ ı‡ÌËÎË˘Â Firebase Storage
+    # –ó–∞–≥—Ä—É–∑–∫–∞ —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏ –≤ —Ö—Ä–∞–Ω–∏–ª–∏—â–µ Firebase Storage
     bucket = storage.bucket()
     blob = bucket.blob(photo_path)
     blob.upload_from_filename(photo_path)
-    # —‰ÂÎ‡Ú¸ ÙÓÚÓ„‡ÙË˛ Ó·˘Â‰ÓÒÚÛÔÌÓÈ
+    # –°–¥–µ–ª–∞—Ç—å —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏—é –æ–±—â–µ–¥–æ—Å—Ç—É–ø–Ω–æ–π
     blob.make_public()
-    # œÓÎÛ˜ÂÌËÂ URL-‡‰ÂÒ‡ Á‡„ÛÊÂÌÌÓÈ ÙÓÚÓ„‡ÙËË
+    # –ü–æ–ª—É—á–µ–Ω–∏–µ URL-–∞–¥—Ä–µ—Å–∞ –∑–∞–≥—Ä—É–∂–µ–Ω–Ω–æ–π —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏
     photo_url = blob.public_url
     return photo_url
 
-# √ÂÌÂ‡ˆËˇ ÍÎ‡‚Ë‡ÚÛ˚ Ò ÍÌÓÔÍ‡ÏË ‰Îˇ ÚÂÍÛ˘ÂÈ ÒÚ‡ÌËˆ˚
+# –ì–µ–Ω–µ—Ä–∞—Ü–∏—è –∫–ª–∞–≤–∏–∞—Ç—É—Ä—ã —Å –∫–Ω–æ–ø–∫–∞–º–∏ –¥–ª—è —Ç–µ–∫—É—â–µ–π —Å—Ç—Ä–∞–Ω–∏—Ü—ã
 def generate_keyboard(page, total_items, items_per_page):
     keyboard = ReplyKeyboardMarkup(row_width=3)
     buttons = generate_buttons(page, total_items, items_per_page)
     keyboard.add(*buttons)
     if page > 1:
-        prev_button = KeyboardButton('Õ‡Á‡‰')
+        prev_button = KeyboardButton('–ù–∞–∑–∞–¥')
         keyboard.add(prev_button)
     if page < total_items // items_per_page + 1:
-        next_button = KeyboardButton('¬ÔÂÂ‰')
+        next_button = KeyboardButton('–í–ø–µ—Ä–µ–¥')
         keyboard.add(next_button)
-    search_button = KeyboardButton('œÓËÒÍ')
+    search_button = KeyboardButton('–ü–æ–∏—Å–∫')
     keyboard.add(search_button)
     return keyboard
 
-# —ÓÁ‰‡ÌËÂ ˝ÍÁÂÏÔÎˇ‡ ·ÓÚ‡
+# –°–æ–∑–¥–∞–Ω–∏–µ —ç–∫–∑–µ–º–ø–ª—è—Ä–∞ –±–æ—Ç–∞
 bot = telebot.TeleBot('6060999563:AAEcBNGXbAuiHc10xvj8KIOU8dGDazSCEJc')
 
-# Œ·‡·ÓÚ˜ËÍ ÍÓÏ‡Ì‰˚ /start
+# –û–±—Ä–∞–±–æ—Ç—á–∏–∫ –∫–æ–º–∞–Ω–¥—ã /start
 @bot.message_handler(commands=['start'])
 def start(message):
     global photo_data
-    photo_data = {}  # Œ˜Ë˘‡ÂÏ ‰‡ÌÌ˚Â Ó ÙÓÚÓ„‡ÙËË ÔË Á‡ÔÛÒÍÂ ·ÓÚ‡
+    photo_data = {}  # –û—á–∏—â–∞–µ–º –¥–∞–Ω–Ω—ã–µ –æ —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏ –ø—Ä–∏ –∑–∞–ø—É—Å–∫–µ –±–æ—Ç–∞
     keyboard = ReplyKeyboardMarkup(row_width=1)
-    menu_button = KeyboardButton('Õ‡˜‡Ú¸')
+    menu_button = KeyboardButton('–ù–∞—á–∞—Ç—å')
     keyboard.add(menu_button)
-    bot.send_message(chat_id=message.chat.id, text='œË‚ÂÚ! Õ‡ÊÏË ÍÌÓÔÍÛ "Õ‡˜‡Ú¸"', reply_markup=keyboard)
+    bot.send_message(chat_id=message.chat.id, text='–ü—Ä–∏–≤–µ—Ç! –ù–∞–∂–º–∏ –∫–Ω–æ–ø–∫—É "–ù–∞—á–∞—Ç—å"', reply_markup=keyboard)
 
-# Œ·‡·ÓÚ˜ËÍ Ì‡Ê‡ÚËˇ ÍÌÓÔÍË "Õ‡˜‡Ú¸"
-@bot.message_handler(func=lambda message: message.text == 'Õ‡˜‡Ú¸')
+# –û–±—Ä–∞–±–æ—Ç—á–∏–∫ –Ω–∞–∂–∞—Ç–∏—è –∫–Ω–æ–ø–∫–∏ "–ù–∞—á–∞—Ç—å"
+@bot.message_handler(func=lambda message: message.text == '–ù–∞—á–∞—Ç—å')
 def handle_burger_menu(message):
     page = 1
     keyboard = generate_keyboard(page, total_sectors, sectors_per_page)
     
     if int(message.from_user.id) in admin_ids:
-        # —ÓÁ‰‡ÂÏ ÍÎ‡‚Ë‡ÚÛÛ ‰Îˇ ‡‰ÏËÌ‡ Ë ÓÚÔ‡‚ÎˇÂÏ ÂÂ ‚ÏÂÒÚÂ Ò ÒÓÓ·˘ÂÌËÂÏ 
+        # –°–æ–∑–¥–∞–µ–º –∫–ª–∞–≤–∏–∞—Ç—É—Ä—É –¥–ª—è –∞–¥–º–∏–Ω–∞ –∏ –æ—Ç–ø—Ä–∞–≤–ª—è–µ–º –µ–µ –≤–º–µ—Å—Ç–µ —Å —Å–æ–æ–±—â–µ–Ω–∏–µ–º 
         keyboard = ReplyKeyboardMarkup(resize_keyboard=True)    
-        admin_button = KeyboardButton('œÓÒÏÓÚÂÚ¸ Á‡‡ÊÂÌÌ˚Â')
+        admin_button = KeyboardButton('–ü–æ—Å–º–æ—Ç—Ä–µ—Ç—å –∑–∞—Ä–∞–∂–µ–Ω–Ω—ã–µ')
         keyboard.add(admin_button)
-        bot.send_message(chat_id=message.chat.id, text='¬˚·ÂË ÒÂÍÚÓ ‡‰ÏËÌ:', reply_markup=keyboard)
+        bot.send_message(chat_id=message.chat.id, text='–í—ã–±–µ—Ä–∏ —Å–µ–∫—Ç–æ—Ä –∞–¥–º–∏–Ω:', reply_markup=keyboard)
     else:
-        # —ÓÁ‰‡ÂÏ ÍÎ‡‚Ë‡ÚÛÛ ‰Îˇ ‚˚·Ó‡ ÎÓÁ˚ ËÎË „ÓÁ‰Ë
+        # –°–æ–∑–¥–∞–µ–º –∫–ª–∞–≤–∏–∞—Ç—É—Ä—É –¥–ª—è –≤—ã–±–æ—Ä–∞ –ª–æ–∑—ã –∏–ª–∏ –≥—Ä–æ–∑–¥–∏
         keyboard = ReplyKeyboardMarkup(row_width=2)
-        vine_button = KeyboardButton('ÀÓÁ‡')
-        grape_button = KeyboardButton('√ÓÁ‰¸')
+        vine_button = KeyboardButton('–õ–æ–∑–∞')
+        grape_button = KeyboardButton('–ì—Ä–æ–∑–¥—å')
         keyboard.add(vine_button, grape_button)
-        bot.send_message(chat_id=message.chat.id, text='¬˚·ÂËÚÂ ÎÓÁÛ ËÎË „ÓÁ‰¸:', reply_markup=keyboard)
+        bot.send_message(chat_id=message.chat.id, text='–í—ã–±–µ—Ä–∏—Ç–µ –ª–æ–∑—É –∏–ª–∏ –≥—Ä–æ–∑–¥—å:', reply_markup=keyboard)
 
-# Œ·‡·ÓÚ˜ËÍ ‚˚·Ó‡ ÎÓÁ˚ ËÎË „ÓÁ‰Ë
-@bot.message_handler(func=lambda message: message.text == 'ÀÓÁ‡' or message.text == '√ÓÁ‰¸')
+# –û–±—Ä–∞–±–æ—Ç—á–∏–∫ –≤—ã–±–æ—Ä–∞ –ª–æ–∑—ã –∏–ª–∏ –≥—Ä–æ–∑–¥–∏
+@bot.message_handler(func=lambda message: message.text == '–õ–æ–∑–∞' or message.text == '–ì—Ä–æ–∑–¥—å')
 
 #def handle_if(message):
     
@@ -110,254 +111,255 @@ def handle_burger_menu(message):
 def handle_vine_grape_selection(message):
     global photo_data
     global vine_grape_id
-    if message.text == 'ÀÓÁ‡':
+    if message.text == '–õ–æ–∑–∞':
         vine_grape_id = 0
         print(vine_grape_id)
-    elif message.text == '√ÓÁ‰¸':
+    elif message.text == '–ì—Ä–æ–∑–¥—å':
         vine_grape_id = 1
         print(vine_grape_id)
-    # —Óı‡ÌˇÂÏ ‚˚·Ó ‚ ‰‡ÌÌ˚ı Ó ÙÓÚÓ„‡ÙËË
+    # –°–æ—Ö—Ä–∞–Ω—è–µ–º –≤—ã–±–æ—Ä –≤ –¥–∞–Ω–Ω—ã—Ö –æ —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏
     photo_data['choice'] = message.text
-    bot.send_message(chat_id=message.chat.id, text=f'¬˚ ‚˚·‡ÎË {message.text}')
+    bot.send_message(chat_id=message.chat.id, text=f'–í—ã –≤—ã–±—Ä–∞–ª–∏ {message.text}')
     page = 1
     keyboard = generate_keyboard(page, total_sectors, sectors_per_page)
-    bot.send_message(chat_id=message.chat.id, text='¬˚·ÂËÚÂ ÒÂÍÚÓ:', reply_markup=keyboard)
+    bot.send_message(chat_id=message.chat.id, text='–í—ã–±–µ—Ä–∏—Ç–µ —Å–µ–∫—Ç–æ—Ä:', reply_markup=keyboard)
 
-current_page = 1  # œÂÂÏÂÌÌ‡ˇ ‰Îˇ ÓÚÒÎÂÊË‚‡ÌËˇ ÚÂÍÛ˘ÂÈ ÒÚ‡ÌËˆ˚
+current_page = 1  # –ü–µ—Ä–µ–º–µ–Ω–Ω–∞—è –¥–ª—è –æ—Ç—Å–ª–µ–∂–∏–≤–∞–Ω–∏—è —Ç–µ–∫—É—â–µ–π —Å—Ç—Ä–∞–Ω–∏—Ü—ã
 global record_id
 
-# ‘ÛÌÍˆËˇ-Ó·‡·ÓÚ˜ËÍ ÒÓÓ·˘ÂÌËÈ
-@bot.message_handler(func=lambda message: message.text == 'œÓÒÏÓÚÂÚ¸ Á‡‡ÊÂÌÌ˚Â')
+# –§—É–Ω–∫—Ü–∏—è-–æ–±—Ä–∞–±–æ—Ç—á–∏–∫ —Å–æ–æ–±—â–µ–Ω–∏–π
+@bot.message_handler(func=lambda message: message.text == '–ü–æ—Å–º–æ—Ç—Ä–µ—Ç—å –∑–∞—Ä–∞–∂–µ–Ω–Ω—ã–µ')
 def handle_admin_button(message):
     ref = db.reference('GrApi')
-    snapshot = ref.order_by_child('sick').equal_to('‰‡').get()
+    snapshot = ref.order_by_child('sick').equal_to('–¥–∞').get()
     for key, value in snapshot.items():
         cell = value['cell']
         comment = value['comment']
         numVine = value['numVine']
         photoUrl = value['photoUrl']
         record_id=key 
-        print(record_id)
         markup_inline = types.InlineKeyboardMarkup()
         
-        # —ÓÁ‰‡ÂÏ ÒÓÓ·˘ÂÌËÂ Ò Í‡ÚÓ˜ÍÓÈ
-        message_text = f"ÕÓÏÂ ˇ‰‡: {numVine}\n ÓÏÏÂÌÚ‡ËÈ: {comment}\n—ÂÍÚÓ: {cell}\n—Ò˚ÎÍ‡ Ì‡ ÙÓÚÓ: {photoUrl}"
+        # –°–æ–∑–¥–∞–µ–º —Å–æ–æ–±—â–µ–Ω–∏–µ —Å –∫–∞—Ä—Ç–æ—á–∫–æ–π
+        
+        message_text = f"–ù–æ–º–µ—Ä —Ä—è–¥–∞: {numVine}\n–ö–æ–º–º–µ–Ω—Ç–∞—Ä–∏–π: {comment}\n–°–µ–∫—Ç–æ—Ä: {cell}\n–°—Å—ã–ª–∫–∞ –Ω–∞ —Ñ–æ—Ç–æ: {photoUrl}"
         message = bot.send_photo(chat_id=message.chat.id, photo=value['photoUrl'], caption=message_text)
 
-        # —ÓÁ‰‡ÂÏ ÍÌÓÔÍÛ ‰Îˇ ËÁÏÂÌÂÌËˇ ÁÌ‡˜ÂÌËˇ "sick"
+        # –°–æ–∑–¥–∞–µ–º –∫–Ω–æ–ø–∫—É –¥–ª—è –∏–∑–º–µ–Ω–µ–Ω–∏—è –∑–Ω–∞—á–µ–Ω–∏—è "sick"
         keyboard = types.InlineKeyboardMarkup()
-        button_no = types.InlineKeyboardButton(text="ÕÂ ·ÓÎÂÂÚ", callback_data=f"update_sick ÌÂÚ {record_id}")
+        button_no = types.InlineKeyboardButton(text="–ù–µ –±–æ–ª–µ–µ—Ç", callback_data=f"update_sick –Ω–µ—Ç {record_id}")
 
         keyboard.add(button_no)
 
-        # ƒÓ·‡‚ÎˇÂÏ ÍÌÓÔÍÛ Ì‡ ÒÓÓ·˘ÂÌËÂ Ò Í‡ÚÓ˜ÍÓÈ
+        # –î–æ–±–∞–≤–ª—è–µ–º –∫–Ω–æ–ø–∫—É –Ω–∞ —Å–æ–æ–±—â–µ–Ω–∏–µ —Å –∫–∞—Ä—Ç–æ—á–∫–æ–π
         bot.edit_message_reply_markup(chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
 
 
-# Œ·‡·ÓÚ˜ËÍ ÍÓÎ·˝Í‡ ÓÚ ÍÌÓÔÍË "ÕÂÚ"
+# –û–±—Ä–∞–±–æ—Ç—á–∏–∫ –∫–æ–ª–±—ç–∫–∞ –æ—Ç –∫–Ω–æ–ø–∫–∏ "–ù–µ—Ç"
 @bot.callback_query_handler(func=lambda call: call.data.startswith('update_sick'))
 def update_sick(call):
-    # –‡Á·Ë‚‡ÂÏ ÒÚÓÍÛ Ò ÍÓÎ·˝ÍÓÏ Ì‡ ˜‡ÒÚË
+    # –†–∞–∑–±–∏–≤–∞–µ–º —Å—Ç—Ä–æ–∫—É —Å –∫–æ–ª–±—ç–∫–æ–º –Ω–∞ —á–∞—Å—Ç–∏
     _, new_value, record_id = call.data.split()
     
-    # œÓÎÛ˜‡ÂÏ ID Á‡ÔËÒË ËÁ callback_data
+    # –ü–æ–ª—É—á–∞–µ–º ID –∑–∞–ø–∏—Å–∏ –∏–∑ callback_data
 
     print(record_id)
 
     
-    # Œ·ÌÓ‚ÎˇÂÏ ÁÌ‡˜ÂÌËÂ ÔÓÎˇ "sick" ‚ ·‡ÁÂ ‰‡ÌÌ˚ı
+    # –û–±–Ω–æ–≤–ª—è–µ–º –∑–Ω–∞—á–µ–Ω–∏–µ –ø–æ–ª—è "sick" –≤ –±–∞–∑–µ –¥–∞–Ω–Ω—ã—Ö
     ref = db.reference('GrApi').child(record_id)
     ref.update({'sick': new_value})
     
-    # ŒÚÔ‡‚ÎˇÂÏ ÔÓÎ¸ÁÓ‚‡ÚÂÎ˛ ÒÓÓ·˘ÂÌËÂ Ó ÚÓÏ, ˜ÚÓ ÁÌ‡˜ÂÌËÂ ·˚ÎÓ Ó·ÌÓ‚ÎÂÌÓ
-    bot.answer_callback_query(callback_query_id=call.id, text=f'«Ì‡˜ÂÌËÂ sick ËÁÏÂÌÂÌÓ Ì‡ {new_value}')
+    # –û—Ç–ø—Ä–∞–≤–ª—è–µ–º –ø–æ–ª—å–∑–æ–≤–∞—Ç–µ–ª—é —Å–æ–æ–±—â–µ–Ω–∏–µ –æ —Ç–æ–º, —á—Ç–æ –∑–Ω–∞—á–µ–Ω–∏–µ –±—ã–ª–æ –æ–±–Ω–æ–≤–ª–µ–Ω–æ
+    bot.answer_callback_query(callback_query_id=call.id, text=f'–ó–Ω–∞—á–µ–Ω–∏–µ sick –∏–∑–º–µ–Ω–µ–Ω–æ –Ω–∞ {new_value}')
 
 
-# Œ·‡·ÓÚ˜ËÍ ‚˚·Ó‡ ÒÂÍÚÓ‡ ËÎË ÌÓÏÂ‡ ÎÓÁ˚
-@bot.message_handler(func=lambda message: message.text.startswith('ÕÓÏÂ '))
+# –û–±—Ä–∞–±–æ—Ç—á–∏–∫ –≤—ã–±–æ—Ä–∞ —Å–µ–∫—Ç–æ—Ä–∞ –∏–ª–∏ –Ω–æ–º–µ—Ä–∞ –ª–æ–∑—ã
+@bot.message_handler(func=lambda message: message.text.startswith('–ù–æ–º–µ—Ä '))
 def handle_sector_selection(message):
     
     item_number = int(message.text.split()[1])
     if 'cell' not in photo_data:
-        # —Óı‡ÌˇÂÏ ‚˚·‡ÌÌ˚È ÒÂÍÚÓ ‚ ‰‡ÌÌ˚ı Ó ÙÓÚÓ„‡ÙËË
+        # –°–æ—Ö—Ä–∞–Ω—è–µ–º –≤—ã–±—Ä–∞–Ω–Ω—ã–π —Å–µ–∫—Ç–æ—Ä –≤ –¥–∞–Ω–Ω—ã—Ö –æ —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏
         photo_data['cell'] = item_number
-        bot.send_message(chat_id=message.chat.id, text=f'¬˚ ‚˚·‡ÎË ÒÂÍÚÓ {item_number}')
+        bot.send_message(chat_id=message.chat.id, text=f'–í—ã –≤—ã–±—Ä–∞–ª–∏ —Å–µ–∫—Ç–æ—Ä {item_number}')
         page = 1
         keyboard = generate_keyboard(page, total_vines, vines_per_page)
-        bot.send_message(chat_id=message.chat.id, text='¬˚·ÂËÚÂ ˇ‰:', reply_markup=keyboard)
+        bot.send_message(chat_id=message.chat.id, text='–í—ã–±–µ—Ä–∏—Ç–µ —Ä—è–¥:', reply_markup=keyboard)
     else:
-        # —Óı‡ÌˇÂÏ ‚˚·‡ÌÌ˚È ÌÓÏÂ ÎÓÁ˚ ‚ ‰‡ÌÌ˚ı Ó ÙÓÚÓ„‡ÙËË
+        # –°–æ—Ö—Ä–∞–Ω—è–µ–º –≤—ã–±—Ä–∞–Ω–Ω—ã–π –Ω–æ–º–µ—Ä –ª–æ–∑—ã –≤ –¥–∞–Ω–Ω—ã—Ö –æ —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏
         photo_data['numVine'] = item_number
-        bot.send_message(chat_id=message.chat.id, text=f'¬˚ ‚˚·‡ÎË ˇ‰ ÌÓÏÂ {item_number}')
+        bot.send_message(chat_id=message.chat.id, text=f'–í—ã –≤—ã–±—Ä–∞–ª–∏ —Ä—è–¥ –Ω–æ–º–µ—Ä {item_number}')
         keyboard = ReplyKeyboardMarkup(row_width=1)
-        take_photo_button = KeyboardButton('—‰ÂÎ‡Ú¸ ÒÌËÏÓÍ')
-        select_photo_button = KeyboardButton('¬˚·‡Ú¸ ÙÓÚÓ ËÁ „‡ÎÂÂË')
-        cancel_button = KeyboardButton('œÂ‚‡Ú¸')
+        take_photo_button = KeyboardButton('–°–¥–µ–ª–∞—Ç—å —Å–Ω–∏–º–æ–∫')
+        select_photo_button = KeyboardButton('–í—ã–±—Ä–∞—Ç—å —Ñ–æ—Ç–æ –∏–∑ –≥–∞–ª–µ—Ä–µ–∏')
+        cancel_button = KeyboardButton('–ü—Ä–µ—Ä–≤–∞—Ç—å')
         keyboard.add(take_photo_button, select_photo_button, cancel_button)
-        bot.send_message(chat_id=message.chat.id, text='¬˚·ÂËÚÂ ‰ÂÈÒÚ‚ËÂ:', reply_markup=keyboard)
+        bot.send_message(chat_id=message.chat.id, text='–í—ã–±–µ—Ä–∏—Ç–µ –¥–µ–π—Å—Ç–≤–∏–µ:', reply_markup=keyboard)
 
-# Œ·‡·ÓÚ˜ËÍ Ì‡Ê‡ÚËˇ ÍÌÓÔÍË "¬ÔÂÂ‰"
-@bot.message_handler(func=lambda message: message.text == '¬ÔÂÂ‰')
+# –û–±—Ä–∞–±–æ—Ç—á–∏–∫ –Ω–∞–∂–∞—Ç–∏—è –∫–Ω–æ–ø–∫–∏ "–í–ø–µ—Ä–µ–¥"
+@bot.message_handler(func=lambda message: message.text == '–í–ø–µ—Ä–µ–¥')
 def handle_next_page(message):
     global current_page
     current_page += 1
     if 'cell' not in photo_data:
         keyboard = generate_keyboard(current_page, total_sectors, sectors_per_page)
-        bot.send_message(chat_id=message.chat.id, text='¬˚·ÂË ÒÂÍÚÓ:', reply_markup=keyboard)
+        bot.send_message(chat_id=message.chat.id, text='–í—ã–±–µ—Ä–∏ —Å–µ–∫—Ç–æ—Ä:', reply_markup=keyboard)
     else:
         keyboard = generate_keyboard(current_page, total_vines, vines_per_page)
-        bot.send_message(chat_id=message.chat.id, text='¬˚·ÂËÚÂ ÌÓÏÂ ˇ‰‡:', reply_markup=keyboard)
+        bot.send_message(chat_id=message.chat.id, text='–í—ã–±–µ—Ä–∏—Ç–µ –Ω–æ–º–µ—Ä —Ä—è–¥–∞:', reply_markup=keyboard)
 
-# Œ·‡·ÓÚ˜ËÍ Ì‡Ê‡ÚËˇ ÍÌÓÔÍË "Õ‡Á‡‰"
-@bot.message_handler(func=lambda message: message.text == 'Õ‡Á‡‰')
+# –û–±—Ä–∞–±–æ—Ç—á–∏–∫ –Ω–∞–∂–∞—Ç–∏—è –∫–Ω–æ–ø–∫–∏ "–ù–∞–∑–∞–¥"
+@bot.message_handler(func=lambda message: message.text == '–ù–∞–∑–∞–¥')
 def handle_prev_page(message):
     global current_page
     current_page -= 1
     if 'cell' not in photo_data:
         keyboard = generate_keyboard(current_page, total_sectors, sectors_per_page)
-        bot.send_message(chat_id=message.chat.id, text='¬˚·ÂË ÒÂÍÚÓ:', reply_markup=keyboard)
+        bot.send_message(chat_id=message.chat.id, text='–í—ã–±–µ—Ä–∏ —Å–µ–∫—Ç–æ—Ä:', reply_markup=keyboard)
     else:
         keyboard = generate_keyboard(current_page, total_vines, vines_per_page)
-        bot.send_message(chat_id=message.chat.id, text='¬˚·ÂËÚÂ ÌÓÏÂ ˇ‰‡:', reply_markup=keyboard)
+        bot.send_message(chat_id=message.chat.id, text='–í—ã–±–µ—Ä–∏—Ç–µ –Ω–æ–º–µ—Ä —Ä—è–¥–∞:', reply_markup=keyboard)
 
-# Œ·‡·ÓÚ˜ËÍ Ì‡Ê‡ÚËˇ ÍÌÓÔÍË "œÓËÒÍ"
-@bot.message_handler(func=lambda message: message.text == 'œÓËÒÍ')
+# –û–±—Ä–∞–±–æ—Ç—á–∏–∫ –Ω–∞–∂–∞—Ç–∏—è –∫–Ω–æ–ø–∫–∏ "–ü–æ–∏—Å–∫"
+@bot.message_handler(func=lambda message: message.text == '–ü–æ–∏—Å–∫')
 def handle_search(message):
     if 'cell' not in photo_data:
-        bot.send_message(chat_id=message.chat.id, text='¬‚Â‰ËÚÂ ÌÓÏÂ ÒÂÍÚÓ‡ (˜ËÒÎÓ):')
+        bot.send_message(chat_id=message.chat.id, text='–í–≤–µ–¥–∏—Ç–µ –Ω–æ–º–µ—Ä —Å–µ–∫—Ç–æ—Ä–∞ (—á–∏—Å–ª–æ):')
     else:
-        bot.send_message(chat_id=message.chat.id, text='¬‚Â‰ËÚÂ ÌÓÏÂ ˇ‰‡ (˜ËÒÎÓ):')
+        bot.send_message(chat_id=message.chat.id, text='–í–≤–µ–¥–∏—Ç–µ –Ω–æ–º–µ—Ä —Ä—è–¥–∞ (—á–∏—Å–ª–æ):')
 
-# Œ·‡·ÓÚ˜ËÍ ‚‚Ó‰‡ ÌÓÏÂ‡ ÒÂÍÚÓ‡ ËÎË ÎÓÁ˚
+# –û–±—Ä–∞–±–æ—Ç—á–∏–∫ –≤–≤–æ–¥–∞ –Ω–æ–º–µ—Ä–∞ —Å–µ–∫—Ç–æ—Ä–∞ –∏–ª–∏ –ª–æ–∑—ã
 @bot.message_handler(func=lambda message: message.text.isdigit())
 def handle_search_number(message):
     global photo_data
     item_number = int(message.text)
     if 'cell' not in photo_data:
         if 1 <= item_number <= total_sectors:
-            # —Óı‡ÌˇÂÏ ‚˚·‡ÌÌ˚È ÒÂÍÚÓ ‚ ‰‡ÌÌ˚ı Ó ÙÓÚÓ„‡ÙËË
+            # –°–æ—Ö—Ä–∞–Ω—è–µ–º –≤—ã–±—Ä–∞–Ω–Ω—ã–π —Å–µ–∫—Ç–æ—Ä –≤ –¥–∞–Ω–Ω—ã—Ö –æ —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏
             photo_data['cell'] = item_number
-            bot.send_message(chat_id=message.chat.id, text=f'¬˚ ‚˚·‡ÎË ÒÂÍÚÓ {item_number}')
+            bot.send_message(chat_id=message.chat.id, text=f'–í—ã –≤—ã–±—Ä–∞–ª–∏ —Å–µ–∫—Ç–æ—Ä {item_number}')
             page = 1
             keyboard = generate_keyboard(page, total_vines, vines_per_page)
-            bot.send_message(chat_id=message.chat.id, text='¬˚·ÂËÚÂ ÌÓÏÂ ˇ‰‡:', reply_markup=keyboard)
+            bot.send_message(chat_id=message.chat.id, text='–í—ã–±–µ—Ä–∏—Ç–µ –Ω–æ–º–µ—Ä —Ä—è–¥–∞:', reply_markup=keyboard)
         else:
-            bot.send_message(chat_id=message.chat.id, text='ÕÂÍÓÂÍÚÌ˚È ÌÓÏÂ ÒÂÍÚÓ‡')
+            bot.send_message(chat_id=message.chat.id, text='–ù–µ–∫–æ—Ä—Ä–µ–∫—Ç–Ω—ã–π –Ω–æ–º–µ—Ä —Å–µ–∫—Ç–æ—Ä–∞')
     else:
         if 1 <= item_number <= total_vines:
-            # —Óı‡ÌˇÂÏ ‚˚·‡ÌÌ˚È ÌÓÏÂ ÎÓÁ˚ ‚ ‰‡ÌÌ˚ı Ó ÙÓÚÓ„‡ÙËË
+            # –°–æ—Ö—Ä–∞–Ω—è–µ–º –≤—ã–±—Ä–∞–Ω–Ω—ã–π –Ω–æ–º–µ—Ä –ª–æ–∑—ã –≤ –¥–∞–Ω–Ω—ã—Ö –æ —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏
             photo_data['numVine'] = item_number
-            bot.send_message(chat_id=message.chat.id, text=f'¬˚ ‚˚·‡ÎË ˇ‰ ÌÓÏÂ {item_number}')
+            bot.send_message(chat_id=message.chat.id, text=f'–í—ã –≤—ã–±—Ä–∞–ª–∏ —Ä—è–¥ –Ω–æ–º–µ—Ä {item_number}')
             keyboard = ReplyKeyboardMarkup(row_width=1)
-            take_photo_button = KeyboardButton('—‰ÂÎ‡Ú¸ ÒÌËÏÓÍ')
-            select_photo_button = KeyboardButton('¬˚·‡Ú¸ ÙÓÚÓ ËÁ „‡ÎÂÂË')
-            cancel_button = KeyboardButton('œÂ‚‡Ú¸')
+            take_photo_button = KeyboardButton('–°–¥–µ–ª–∞—Ç—å —Å–Ω–∏–º–æ–∫')
+            select_photo_button = KeyboardButton('–í—ã–±—Ä–∞—Ç—å —Ñ–æ—Ç–æ –∏–∑ –≥–∞–ª–µ—Ä–µ–∏')
+            cancel_button = KeyboardButton('–ü—Ä–µ—Ä–≤–∞—Ç—å')
             keyboard.add(take_photo_button, select_photo_button, cancel_button)
-            bot.send_message(chat_id=message.chat.id, text='¬˚·ÂËÚÂ ‰ÂÈÒÚ‚ËÂ:', reply_markup=keyboard)
+            bot.send_message(chat_id=message.chat.id, text='–í—ã–±–µ—Ä–∏—Ç–µ –¥–µ–π—Å—Ç–≤–∏–µ:', reply_markup=keyboard)
         else:
-            bot.send_message(chat_id=message.chat.id, text='ÕÂÍÓÂÍÚÌ˚È ÌÓÏÂ ˇ‰‡')
+            bot.send_message(chat_id=message.chat.id, text='–ù–µ–∫–æ—Ä—Ä–µ–∫—Ç–Ω—ã–π –Ω–æ–º–µ—Ä —Ä—è–¥–∞')
 
-# Œ·‡·ÓÚ˜ËÍ Ì‡Ê‡ÚËˇ ÍÌÓÔÍË "—‰ÂÎ‡Ú¸ ÒÌËÏÓÍ"
-@bot.message_handler(func=lambda message: message.text == '—‰ÂÎ‡Ú¸ ÒÌËÏÓÍ')
+# –û–±—Ä–∞–±–æ—Ç—á–∏–∫ –Ω–∞–∂–∞—Ç–∏—è –∫–Ω–æ–ø–∫–∏ "–°–¥–µ–ª–∞—Ç—å —Å–Ω–∏–º–æ–∫"
+@bot.message_handler(func=lambda message: message.text == '–°–¥–µ–ª–∞—Ç—å —Å–Ω–∏–º–æ–∫')
 def handle_take_photo(message):
-    # ŒÚÔ‡‚ÎˇÂÏ Á‡ÔÓÒ ÔÓÎ¸ÁÓ‚‡ÚÂÎ˛ Ò ÔÓÒ¸·ÓÈ Ò‰ÂÎ‡Ú¸ ÙÓÚÓ„‡ÙË˛
-    bot.send_message(chat_id=message.chat.id, text='œÓÊ‡ÎÛÈÒÚ‡, Ò‰ÂÎ‡ÈÚÂ ÙÓÚÓ„‡ÙË˛ Ë ÓÚÔ‡‚¸ÚÂ ÂÂ.')
+    # –û—Ç–ø—Ä–∞–≤–ª—è–µ–º –∑–∞–ø—Ä–æ—Å –ø–æ–ª—å–∑–æ–≤–∞—Ç–µ–ª—é —Å –ø—Ä–æ—Å—å–±–æ–π —Å–¥–µ–ª–∞—Ç—å —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏—é
+    bot.send_message(chat_id=message.chat.id, text='–ü–æ–∂–∞–ª—É–π—Å—Ç–∞, —Å–¥–µ–ª–∞–π—Ç–µ —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏—é –∏ –æ—Ç–ø—Ä–∞–≤—å—Ç–µ –µ–µ.')
 
-# Œ·‡·ÓÚ˜ËÍ Ì‡Ê‡ÚËˇ ÍÌÓÔÍË "¬˚·‡Ú¸ ÙÓÚÓ ËÁ „‡ÎÂÂË"
-@bot.message_handler(func=lambda message: message.text == '¬˚·‡Ú¸ ÙÓÚÓ ËÁ „‡ÎÂÂË')
+# –û–±—Ä–∞–±–æ—Ç—á–∏–∫ –Ω–∞–∂–∞—Ç–∏—è –∫–Ω–æ–ø–∫–∏ "–í—ã–±—Ä–∞—Ç—å —Ñ–æ—Ç–æ –∏–∑ –≥–∞–ª–µ—Ä–µ–∏"
+@bot.message_handler(func=lambda message: message.text == '–í—ã–±—Ä–∞—Ç—å —Ñ–æ—Ç–æ –∏–∑ –≥–∞–ª–µ—Ä–µ–∏')
 def handle_select_photo(message):
-    # ŒÚÔ‡‚ÎˇÂÏ Á‡ÔÓÒ ÔÓÎ¸ÁÓ‚‡ÚÂÎ˛ Ò ÔÓÒ¸·ÓÈ ‚˚·‡Ú¸ ÙÓÚÓ„‡ÙËË ËÁ „‡ÎÂÂË
-    bot.send_message(chat_id=message.chat.id, text='œÓÊ‡ÎÛÈÒÚ‡, ‚˚·ÂËÚÂ ÙÓÚÓ„‡ÙË˛ ËÁ „‡ÎÂÂË Ë ÓÚÔ‡‚¸ÚÂ')
+    # –û—Ç–ø—Ä–∞–≤–ª—è–µ–º –∑–∞–ø—Ä–æ—Å –ø–æ–ª—å–∑–æ–≤–∞—Ç–µ–ª—é —Å –ø—Ä–æ—Å—å–±–æ–π –≤—ã–±—Ä–∞—Ç—å —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏ –∏–∑ –≥–∞–ª–µ—Ä–µ–∏
+    bot.send_message(chat_id=message.chat.id, text='–ü–æ–∂–∞–ª—É–π—Å—Ç–∞, –≤—ã–±–µ—Ä–∏—Ç–µ —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏—é –∏–∑ –≥–∞–ª–µ—Ä–µ–∏ –∏ –æ—Ç–ø—Ä–∞–≤—å—Ç–µ')
     photo_data = {}
 
-# Œ·‡·ÓÚ˜ËÍ ÔÓÎÛ˜ÂÌËˇ ÙÓÚÓ„‡ÙËË
+# –û–±—Ä–∞–±–æ—Ç—á–∏–∫ –ø–æ–ª—É—á–µ–Ω–∏—è —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏
 @bot.message_handler(content_types=['photo'])
 def handle_received_photo(message):
     global photo_data
-    # œÓÎÛ˜‡ÂÏ ËÌÙÓÏ‡ˆË˛ Ó ÙÓÚÓ„‡ÙËË
-    photo = message.photo[-1]  # ¡ÂÂÏ ÔÓÒÎÂ‰Ì˛˛ (Ò‡ÏÛ˛ ·ÓÎ¸¯Û˛) ÙÓÚÓ„‡ÙË˛ ËÁ ÒÔËÒÍ‡
+    # –ü–æ–ª—É—á–∞–µ–º –∏–Ω—Ñ–æ—Ä–º–∞—Ü–∏—é –æ —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏
+    photo = message.photo[-1]  # –ë–µ—Ä–µ–º –ø–æ—Å–ª–µ–¥–Ω—é—é (—Å–∞–º—É—é –±–æ–ª—å—à—É—é) —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏—é –∏–∑ —Å–ø–∏—Å–∫–∞
     file_id = photo.file_id
 
-    # —Í‡˜Ë‚‡ÂÏ ÙÓÚÓ„‡ÙË˛
+    # –°–∫–∞—á–∏–≤–∞–µ–º —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏—é
     file_info = bot.get_file(file_id)
     downloaded_file = bot.download_file(file_info.file_path)
 
-    # —Óı‡ÌˇÂÏ ÙÓÚÓ„‡ÙË˛ Ì‡ ÒÂ‚ÂÂ
-    photo_path = f'photos/{message.from_user.id}.jpg'  # œÛÚ¸ ‰Îˇ ÒÓı‡ÌÂÌËˇ ÙÓÚÓ„‡ÙËË
+    # –°–æ—Ö—Ä–∞–Ω—è–µ–º —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏—é –Ω–∞ —Å–µ—Ä–≤–µ—Ä–µ
+    a = random.randint (0,9999999999999)
+    photo_path = f'photos/{a}.jpg'  # –ü—É—Ç—å –¥–ª—è —Å–æ—Ö—Ä–∞–Ω–µ–Ω–∏—è —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏
     with open(photo_path, 'wb') as file:
         file.write(downloaded_file)
 
-    # —Óı‡ÌˇÂÏ ËÌÙÓÏ‡ˆË˛ Ó ÙÓÚÓ„‡ÙËË ‚ ‰‡ÌÌ˚ı
+    # –°–æ—Ö—Ä–∞–Ω—è–µ–º –∏–Ω—Ñ–æ—Ä–º–∞—Ü–∏—é –æ —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏ –≤ –¥–∞–Ω–Ω—ã—Ö
     photo_data['idPhoto'] = photo_path
 
-    # ŒÚÔ‡‚ÎˇÂÏ ÒÓÓ·˘ÂÌËÂ Ò ÔÓ‰Ú‚ÂÊ‰ÂÌËÂÏ Ë ÔÓÍ‡Á˚‚‡ÂÏ ÔÓÎÛ˜ÂÌÌÛ˛ ÙÓÚÓ„‡ÙË˛
-    bot.send_message(chat_id=message.chat.id, text='‘ÓÚÓ„‡ÙËˇ ÛÒÔÂ¯ÌÓ ÒÓı‡ÌÂÌ‡!')
+    # –û—Ç–ø—Ä–∞–≤–ª—è–µ–º —Å–æ–æ–±—â–µ–Ω–∏–µ —Å –ø–æ–¥—Ç–≤–µ—Ä–∂–¥–µ–Ω–∏–µ–º –∏ –ø–æ–∫–∞–∑—ã–≤–∞–µ–º –ø–æ–ª—É—á–µ–Ω–Ω—É—é —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏—é
+    bot.send_message(chat_id=message.chat.id, text='–§–æ—Ç–æ–≥—Ä–∞—Ñ–∏—è —É—Å–ø–µ—à–Ω–æ —Å–æ—Ö—Ä–∞–Ω–µ–Ω–∞!')
     with open(photo_path, 'rb') as file:
         bot.send_photo(chat_id=message.chat.id, photo=file)
 
-    # œÓÍ‡Á˚‚‡ÂÏ ÍÌÓÔÍË ‰Îˇ Û‰‡ÎÂÌËˇ ÙÓÚÓ„‡ÙËË Ë ‚‚Ó‰‡ ÍÓÏÏÂÌÚ‡Ëˇ
+    # –ü–æ–∫–∞–∑—ã–≤–∞–µ–º –∫–Ω–æ–ø–∫–∏ –¥–ª—è —É–¥–∞–ª–µ–Ω–∏—è —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏ –∏ –≤–≤–æ–¥–∞ –∫–æ–º–º–µ–Ω—Ç–∞—Ä–∏—è
     keyboard = ReplyKeyboardMarkup(row_width=1)
-    delete_button = KeyboardButton('”‰‡ÎËÚ¸ ÙÓÚÓ')
-    comment_button_text = 'ŒÚÂ‰‡ÍÚËÓ‚‡Ú¸ ÍÓÏÏÂÌÚ‡ËÈ' if 'comment' in photo_data else '¬‚ÂÒÚË ÍÓÏÏÂÌÚ‡ËÈ'
+    delete_button = KeyboardButton('–£–¥–∞–ª–∏—Ç—å —Ñ–æ—Ç–æ')
+    comment_button_text = '–û—Ç—Ä–µ–¥–∞–∫—Ç–∏—Ä–æ–≤–∞—Ç—å –∫–æ–º–º–µ–Ω—Ç–∞—Ä–∏–π' if 'comment' in photo_data else '–í–≤–µ—Å—Ç–∏ –∫–æ–º–º–µ–Ω—Ç–∞—Ä–∏–π'
     comment_button = KeyboardButton(comment_button_text)
     keyboard.add(delete_button, comment_button)
-    bot.send_message(chat_id=message.chat.id, text='¬˚·ÂËÚÂ ‰ÂÈÒÚ‚ËÂ:', reply_markup=keyboard)
+    bot.send_message(chat_id=message.chat.id, text='–í—ã–±–µ—Ä–∏—Ç–µ –¥–µ–π—Å—Ç–≤–∏–µ:', reply_markup=keyboard)
 
-# Œ·‡·ÓÚ˜ËÍ Ì‡Ê‡ÚËˇ ÍÌÓÔÍË "”‰‡ÎËÚ¸ ÙÓÚÓ"
-@bot.message_handler(func=lambda message: message.text == '”‰‡ÎËÚ¸ ÙÓÚÓ')
+# –û–±—Ä–∞–±–æ—Ç—á–∏–∫ –Ω–∞–∂–∞—Ç–∏—è –∫–Ω–æ–ø–∫–∏ "–£–¥–∞–ª–∏—Ç—å —Ñ–æ—Ç–æ"
+@bot.message_handler(func=lambda message: message.text == '–£–¥–∞–ª–∏—Ç—å —Ñ–æ—Ç–æ')
 def handle_delete_photo(message):
     global photo_data
     if 'idPhoto' in photo_data:
-        # ”‰‡ÎˇÂÏ Ù‡ÈÎ Ò ÙÓÚÓ„‡ÙËÂÈ Ò ÒÂ‚Â‡
+        # –£–¥–∞–ª—è–µ–º —Ñ–∞–π–ª —Å —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–µ–π —Å —Å–µ—Ä–≤–µ—Ä–∞
         os.remove(photo_data['idPhoto'])
-        # ”‰‡ÎˇÂÏ ËÌÙÓÏ‡ˆË˛ Ó ÙÓÚÓ„‡ÙËË ËÁ ‰‡ÌÌ˚ı
+        # –£–¥–∞–ª—è–µ–º –∏–Ω—Ñ–æ—Ä–º–∞—Ü–∏—é –æ —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏ –∏–∑ –¥–∞–Ω–Ω—ã—Ö
         del photo_data['idPhoto']
-        bot.send_message(chat_id=message.chat.id, text='‘ÓÚÓ„‡ÙËˇ ÛÒÔÂ¯ÌÓ Û‰‡ÎÂÌ‡!')
+        bot.send_message(chat_id=message.chat.id, text='–§–æ—Ç–æ–≥—Ä–∞—Ñ–∏—è —É—Å–ø–µ—à–Ω–æ —É–¥–∞–ª–µ–Ω–∞!')
         keyboard = ReplyKeyboardMarkup(row_width=1)
-        take_photo_button = KeyboardButton('—‰ÂÎ‡Ú¸ ÒÌËÏÓÍ')
-        select_photo_button = KeyboardButton('¬˚·‡Ú¸ ÙÓÚÓ ËÁ „‡ÎÂÂË')
-        cancel_button = KeyboardButton('œÂ‚‡Ú¸')
+        take_photo_button = KeyboardButton('–°–¥–µ–ª–∞—Ç—å —Å–Ω–∏–º–æ–∫')
+        select_photo_button = KeyboardButton('–í—ã–±—Ä–∞—Ç—å —Ñ–æ—Ç–æ –∏–∑ –≥–∞–ª–µ—Ä–µ–∏')
+        cancel_button = KeyboardButton('–ü—Ä–µ—Ä–≤–∞—Ç—å')
         keyboard.add(take_photo_button, select_photo_button, cancel_button)
-        bot.send_message(chat_id=message.chat.id, text='¬˚·ÂËÚÂ ‰ÂÈÒÚ‚ËÂ:', reply_markup=keyboard)
+        bot.send_message(chat_id=message.chat.id, text='–í—ã–±–µ—Ä–∏—Ç–µ –¥–µ–π—Å—Ç–≤–∏–µ:', reply_markup=keyboard)
     else:
-        bot.send_message(chat_id=message.chat.id, text='ÕÂÚ Á‡„ÛÊÂÌÌÓÈ ÙÓÚÓ„‡ÙËË')
+        bot.send_message(chat_id=message.chat.id, text='–ù–µ—Ç –∑–∞–≥—Ä—É–∂–µ–Ω–Ω–æ–π —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏')
 
-# Œ·‡·ÓÚ˜ËÍ Ì‡Ê‡ÚËˇ ÍÌÓÔÍË "¬‚ÂÒÚË ÍÓÏÏÂÌÚ‡ËÈ" ËÎË "ŒÚÂ‰‡ÍÚËÓ‚‡Ú¸ ÍÓÏÏÂÌÚ‡ËÈ"
-@bot.message_handler(func=lambda message: message.text == '¬‚ÂÒÚË ÍÓÏÏÂÌÚ‡ËÈ' or message.text == 'ŒÚÂ‰‡ÍÚËÓ‚‡Ú¸ ÍÓÏÏÂÌÚ‡ËÈ')
+# –û–±—Ä–∞–±–æ—Ç—á–∏–∫ –Ω–∞–∂–∞—Ç–∏—è –∫–Ω–æ–ø–∫–∏ "–í–≤–µ—Å—Ç–∏ –∫–æ–º–º–µ–Ω—Ç–∞—Ä–∏–π" –∏–ª–∏ "–û—Ç—Ä–µ–¥–∞–∫—Ç–∏—Ä–æ–≤–∞—Ç—å –∫–æ–º–º–µ–Ω—Ç–∞—Ä–∏–π"
+@bot.message_handler(func=lambda message: message.text == '–í–≤–µ—Å—Ç–∏ –∫–æ–º–º–µ–Ω—Ç–∞—Ä–∏–π' or message.text == '–û—Ç—Ä–µ–¥–∞–∫—Ç–∏—Ä–æ–≤–∞—Ç—å –∫–æ–º–º–µ–Ω—Ç–∞—Ä–∏–π')
 def handle_input_comment(message):
     global photo_data 
     if 'idPhoto' in photo_data:
-        bot.send_message(chat_id=message.chat.id, text='¬‚Â‰ËÚÂ ÍÓÏÏÂÌÚ‡ËÈ Í ÙÓÚÓ„‡ÙËË:')
+        bot.send_message(chat_id=message.chat.id, text='–í–≤–µ–¥–∏—Ç–µ –∫–æ–º–º–µ–Ω—Ç–∞—Ä–∏–π –∫ —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏:')
     else:
-        bot.send_message(chat_id=message.chat.id, text='ÕÂÚ Á‡„ÛÊÂÌÌÓÈ ÙÓÚÓ„‡ÙËË')
+        bot.send_message(chat_id=message.chat.id, text='–ù–µ—Ç –∑–∞–≥—Ä—É–∂–µ–Ω–Ω–æ–π —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏')
 
-# Œ·‡·ÓÚ˜ËÍ ‚‚Ó‰‡ ÍÓÏÏÂÌÚ‡Ëˇ
+# –û–±—Ä–∞–±–æ—Ç—á–∏–∫ –≤–≤–æ–¥–∞ –∫–æ–º–º–µ–Ω—Ç–∞—Ä–∏—è
 @bot.message_handler(func=lambda message: True)
 def handle_comment(message):
     global date_mes
     global photo_data
     if 'idPhoto' in photo_data:
-        # —Óı‡ÌˇÂÏ ÍÓÏÏÂÌÚ‡ËÈ ‚ ‰‡ÌÌ˚ı Ó ÙÓÚÓ„‡ÙËË
+        # –°–æ—Ö—Ä–∞–Ω—è–µ–º –∫–æ–º–º–µ–Ω—Ç–∞—Ä–∏–π –≤ –¥–∞–Ω–Ω—ã—Ö –æ —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏
         photo_data['comment'] = message.text.strip()
-        bot.send_message(chat_id=message.chat.id, text=' ÓÏÏÂÌÚ‡ËÈ ÛÒÔÂ¯ÌÓ ÒÓı‡ÌÂÌ!')
+        bot.send_message(chat_id=message.chat.id, text='–ö–æ–º–º–µ–Ω—Ç–∞—Ä–∏–π —É—Å–ø–µ—à–Ω–æ —Å–æ—Ö—Ä–∞–Ω–µ–Ω!')
         keyboard = InlineKeyboardMarkup(row_width=1)
-        finish_button = InlineKeyboardButton('«‡‚Â¯ËÚ¸ ÓÚ˜ÂÚ', callback_data='finish')
+        finish_button = InlineKeyboardButton('–ó–∞–≤–µ—Ä—à–∏—Ç—å –æ—Ç—á–µ—Ç', callback_data='finish')
         keyboard.add(finish_button)
-        bot.send_message(chat_id=message.chat.id, text='Õ‡ÊÏËÚÂ "«‡‚Â¯ËÚ¸ ÓÚ˜ÂÚ" ‰Îˇ Á‡‚Â¯ÂÌËˇ ‚˚·Ó‡', reply_markup=keyboard)
-        tconv = lambda x: time.strftime("%Y", time.localtime(x)) # ÓÌ‚ÂÚ‡ˆËˇ ‰‡Ú˚ ‚ ˜ËÚ‡·ÂÎ¸Ì˚È ‚Ë‰
+        bot.send_message(chat_id=message.chat.id, text='–ù–∞–∂–º–∏—Ç–µ "–ó–∞–≤–µ—Ä—à–∏—Ç—å –æ—Ç—á–µ—Ç" –¥–ª—è –∑–∞–≤–µ—Ä—à–µ–Ω–∏—è –≤—ã–±–æ—Ä–∞', reply_markup=keyboard)
+        tconv = lambda x: time.strftime("%Y", time.localtime(x)) #–ö–æ–Ω–≤–µ—Ä—Ç–∞—Ü–∏—è –¥–∞—Ç—ã –≤ —á–∏—Ç–∞–±–µ–ª—å–Ω—ã–π –≤–∏–¥
         date_mes = tconv(message.date)
-        print(tconv(message.date)) # ¬˚‚Ó‰ ‰‡Ú˚ ÚËÔÓ 20:58:30 05.07.2020
+        print(tconv(message.date)) # –í—ã–≤–æ–¥ –¥–∞—Ç—ã —Ç–∏–ø–æ 20:58:30 05.07.2020
 
-# Œ·‡·ÓÚ˜ËÍ Ì‡Ê‡ÚËˇ ÍÌÓÔÍË "«‡‚Â¯ËÚ¸ ÓÚ˜ÂÚ"
+# –û–±—Ä–∞–±–æ—Ç—á–∏–∫ –Ω–∞–∂–∞—Ç–∏—è –∫–Ω–æ–ø–∫–∏ "–ó–∞–≤–µ—Ä—à–∏—Ç—å –æ—Ç—á–µ—Ç"
 @bot.callback_query_handler(func=lambda call: call.data == 'finish')
 def handle_finish_selection(call):
     
     global photo_data
     if vine_grape_id == 0:
             if 'idPhoto' in photo_data:
-                # «‡„ÛÁÍ‡ ÙÓÚÓ„‡ÙËË ‚ ı‡ÌËÎË˘Â Firebase Storage
+                # –ó–∞–≥—Ä—É–∑–∫–∞ —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏ –≤ —Ö—Ä–∞–Ω–∏–ª–∏—â–µ Firebase Storage
                 photo_url = upload_photo_to_storage(photo_data['idPhoto'])
-                # —Óı‡ÌÂÌËÂ URL-‡‰ÂÒ‡ ÙÓÚÓ„‡ÙËË ‚ ‰‡ÌÌ˚ı Ó ÙÓÚÓ„‡ÙËË
+                # –°–æ—Ö—Ä–∞–Ω–µ–Ω–∏–µ URL-–∞–¥—Ä–µ—Å–∞ —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏ –≤ –¥–∞–Ω–Ω—ã—Ö –æ —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏
                 photo_data['photoUrl'] = photo_url
 
                         # Disable scientific notation for clarity
@@ -400,33 +402,33 @@ def handle_finish_selection(call):
 
                 print("Class:", class_name[2:], end="")
                 print("Confidence Score:", confidence_score)
-
+                print('test', class_name[2:])
                 if class_name == 'Good':
-                    photo_data['sick'] = 'ÌÂÚ'
+                    photo_data['sick'] = '–Ω–µ—Ç'
                 else:
-                    photo_data['sick'] = '‰‡'
+                    photo_data['sick'] = '–¥–∞'
 
-                # —Óı‡ÌˇÂÏ ‰‡ÌÌ˚Â Ó ÙÓÚÓ„‡ÙËË ‚ ·‡ÁÂ ‰‡ÌÌ˚ı Firebase
+                # –°–æ—Ö—Ä–∞–Ω—è–µ–º –¥–∞–Ω–Ω—ã–µ –æ —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏ –≤ –±–∞–∑–µ –¥–∞–Ω–Ω—ã—Ö Firebase
                 ref = db.reference('GrApi')
                 photo_data ['dateYear'] = date_mes
                 print(date_mes, "date_mes")
                 ref.push(photo_data)
-                bot.send_message(chat_id=call.message.chat.id, text='ŒÚ˜ÂÚ ÛÒÔÂ¯ÌÓ Á‡‚Â¯ÂÌ!')
-                # Œ˜Ë˘‡ÂÏ ‰‡ÌÌ˚Â Ó ÙÓÚÓ„‡ÙËË
+                bot.send_message(chat_id=call.message.chat.id, text='–û—Ç—á–µ—Ç —É—Å–ø–µ—à–Ω–æ –∑–∞–≤–µ—Ä—à–µ–Ω!')
+                # –û—á–∏—â–∞–µ–º –¥–∞–Ω–Ω—ã–µ –æ —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏
                 photo_data = {}
                 keyboard = ReplyKeyboardMarkup(row_width=1)
-                menu_button = KeyboardButton('Õ‡˜‡Ú¸')
+                menu_button = KeyboardButton('–ù–∞—á–∞—Ç—å')
                 keyboard.add(menu_button)
-                bot.send_message(chat_id=call.message.chat.id, text='Õ‡ÊÏËÚÂ ÍÌÓÔÍÛ "Õ‡˜‡Ú¸" ‰Îˇ Ì‡˜‡Î‡ ÌÓ‚Ó„Ó ‚˚·Ó‡', reply_markup=keyboard)
+                bot.send_message(chat_id=call.message.chat.id, text='–ù–∞–∂–º–∏—Ç–µ –∫–Ω–æ–ø–∫—É "–ù–∞—á–∞—Ç—å" –¥–ª—è –Ω–∞—á–∞–ª–∞ –Ω–æ–≤–æ–≥–æ –≤—ã–±–æ—Ä–∞', reply_markup=keyboard)
             else:
-                # ŒÚÔ‡‚ÎˇÂÏ ÒÓÓ·˘ÂÌËÂ Ó· ÓÚÒÛÚÒÚ‚ËË Á‡„ÛÊÂÌÌÓÈ ÙÓÚÓ„‡ÙËË
-                bot.send_message(chat_id=call.message.chat.id, text='ÕÂÚ Á‡„ÛÊÂÌÌÓÈ ÙÓÚÓ„‡ÙËË')
+                # –û—Ç–ø—Ä–∞–≤–ª—è–µ–º —Å–æ–æ–±—â–µ–Ω–∏–µ –æ–± –æ—Ç—Å—É—Ç—Å—Ç–≤–∏–∏ –∑–∞–≥—Ä—É–∂–µ–Ω–Ω–æ–π —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏
+                bot.send_message(chat_id=call.message.chat.id, text='–ù–µ—Ç –∑–∞–≥—Ä—É–∂–µ–Ω–Ω–æ–π —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏')
 
     else:
         if 'idPhoto' in photo_data:
-                # «‡„ÛÁÍ‡ ÙÓÚÓ„‡ÙËË ‚ ı‡ÌËÎË˘Â Firebase Storage
+                # –ó–∞–≥—Ä—É–∑–∫–∞ —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏ –≤ —Ö—Ä–∞–Ω–∏–ª–∏—â–µ Firebase Storage
                 photo_url = upload_photo_to_storage(photo_data['idPhoto'])
-                # —Óı‡ÌÂÌËÂ URL-‡‰ÂÒ‡ ÙÓÚÓ„‡ÙËË ‚ ‰‡ÌÌ˚ı Ó ÙÓÚÓ„‡ÙËË
+                # –°–æ—Ö—Ä–∞–Ω–µ–Ω–∏–µ URL-–∞–¥—Ä–µ—Å–∞ —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏ –≤ –¥–∞–Ω–Ω—ã—Ö –æ —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏
                 photo_data['photoUrl'] = photo_url
                 # Disable scientific notation for clarity
                 np.set_printoptions(suppress=True)
@@ -471,47 +473,47 @@ def handle_finish_selection(call):
                 photo_data['phenopause'] = class_nameVine[2:]
 
                 
-                # —Óı‡ÌˇÂÏ ‰‡ÌÌ˚Â Ó ÙÓÚÓ„‡ÙËË ‚ ·‡ÁÂ ‰‡ÌÌ˚ı Firebase
+                # –°–æ—Ö—Ä–∞–Ω—è–µ–º –¥–∞–Ω–Ω—ã–µ –æ —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏ –≤ –±–∞–∑–µ –¥–∞–Ω–Ω—ã—Ö Firebase
                 ref = db.reference('GrApi')
                 photo_data ['dateYear'] = date_mes
                 print(date_mes, "date_mes")
                 ref.push(photo_data)
-                bot.send_message(chat_id=call.message.chat.id, text='ŒÚ˜ÂÚ ÛÒÔÂ¯ÌÓ Á‡‚Â¯ÂÌ!')
-                # Œ˜Ë˘‡ÂÏ ‰‡ÌÌ˚Â Ó ÙÓÚÓ„‡ÙËË
+                bot.send_message(chat_id=call.message.chat.id, text='–û—Ç—á–µ—Ç —É—Å–ø–µ—à–Ω–æ –∑–∞–≤–µ—Ä—à–µ–Ω!')
+                # –û—á–∏—â–∞–µ–º –¥–∞–Ω–Ω—ã–µ –æ —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏
                 photo_data = {}
                 keyboard = ReplyKeyboardMarkup(row_width=1)
-                menu_button = KeyboardButton('Õ‡˜‡Ú¸')
+                menu_button = KeyboardButton('–ù–∞—á–∞—Ç—å')
                 keyboard.add(menu_button)
-                bot.send_message(chat_id=call.message.chat.id, text='Õ‡ÊÏËÚÂ ÍÌÓÔÍÛ "Õ‡˜‡Ú¸" ‰Îˇ Ì‡˜‡Î‡ ÌÓ‚Ó„Ó ‚˚·Ó‡', reply_markup=keyboard)
+                bot.send_message(chat_id=call.message.chat.id, text='–ù–∞–∂–º–∏—Ç–µ –∫–Ω–æ–ø–∫—É "–ù–∞—á–∞—Ç—å" –¥–ª—è –Ω–∞—á–∞–ª–∞ –Ω–æ–≤–æ–≥–æ –≤—ã–±–æ—Ä–∞', reply_markup=keyboard)
         else:
-                # ŒÚÔ‡‚ÎˇÂÏ ÒÓÓ·˘ÂÌËÂ Ó· ÓÚÒÛÚÒÚ‚ËË Á‡„ÛÊÂÌÌÓÈ ÙÓÚÓ„‡ÙËË
-                bot.send_message(chat_id=call.message.chat.id, text='ÕÂÚ Á‡„ÛÊÂÌÌÓÈ ÙÓÚÓ„‡ÙËË')
+                # –û—Ç–ø—Ä–∞–≤–ª—è–µ–º —Å–æ–æ–±—â–µ–Ω–∏–µ –æ–± –æ—Ç—Å—É—Ç—Å—Ç–≤–∏–∏ –∑–∞–≥—Ä—É–∂–µ–Ω–Ω–æ–π —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏
+                bot.send_message(chat_id=call.message.chat.id, text='–ù–µ—Ç –∑–∞–≥—Ä—É–∂–µ–Ω–Ω–æ–π —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏')
                 
 
 
 
-# Œ·‡·ÓÚ˜ËÍ Ì‡Ê‡ÚËˇ ÍÌÓÔÍË "œÂ‚‡Ú¸"
-@bot.message_handler(func=lambda message: message.text == 'œÂ‚‡Ú¸')
+# –û–±—Ä–∞–±–æ—Ç—á–∏–∫ –Ω–∞–∂–∞—Ç–∏—è –∫–Ω–æ–ø–∫–∏ "–ü—Ä–µ—Ä–≤–∞—Ç—å"
+@bot.message_handler(func=lambda message: message.text == '–ü—Ä–µ—Ä–≤–∞—Ç—å')
 def handle_cancel(message):
     global photo_data
     if 'idPhoto' in photo_data:
-        # ”‰‡ÎˇÂÏ Ù‡ÈÎ Ò ÙÓÚÓ„‡ÙËÂÈ Ò ÒÂ‚Â‡
+        # –£–¥–∞–ª—è–µ–º —Ñ–∞–π–ª —Å —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–µ–π —Å —Å–µ—Ä–≤–µ—Ä–∞
         os.remove(photo_data['idPhoto'])
-    # Œ˜Ë˘‡ÂÏ ‰‡ÌÌ˚Â Ó ÙÓÚÓ„‡ÙËË ÔË ÔÂ˚‚‡ÌËË ‚˚·Ó‡
+    # –û—á–∏—â–∞–µ–º –¥–∞–Ω–Ω—ã–µ –æ —Ñ–æ—Ç–æ–≥—Ä–∞—Ñ–∏–∏ –ø—Ä–∏ –ø—Ä–µ—Ä—ã–≤–∞–Ω–∏–∏ –≤—ã–±–æ—Ä–∞
     photo_data = {}
     keyboard = ReplyKeyboardMarkup(row_width=1)
-    menu_button = KeyboardButton('Õ‡˜‡Ú¸')
+    menu_button = KeyboardButton('–ù–∞—á–∞—Ç—å')
     keyboard.add(menu_button)
-    bot.send_message(chat_id=message.chat.id, text='¬˚·Ó ÔÂ‚‡Ì. Õ‡ÊÏËÚÂ ÍÌÓÔÍÛ "Õ‡˜‡Ú¸" ‰Îˇ Ì‡˜‡Î‡ ÌÓ‚Ó„Ó ‚˚·Ó‡', reply_markup=keyboard)
+    bot.send_message(chat_id=message.chat.id, text='–í—ã–±–æ—Ä –ø—Ä–µ—Ä–≤–∞–Ω. –ù–∞–∂–º–∏—Ç–µ –∫–Ω–æ–ø–∫—É "–ù–∞—á–∞—Ç—å" –¥–ª—è –Ω–∞—á–∞–ª–∞ –Ω–æ–≤–æ–≥–æ –≤—ã–±–æ—Ä–∞', reply_markup=keyboard)
 
-# ‘ÛÌÍˆËˇ ‰Îˇ ÒÓı‡ÌÂÌËˇ ‰‡ÌÌ˚ı Ì‡ ‰ËÒÍÂ
+# –§—É–Ω–∫—Ü–∏—è –¥–ª—è —Å–æ—Ö—Ä–∞–Ω–µ–Ω–∏—è –¥–∞–Ω–Ω—ã—Ö –Ω–∞ –¥–∏—Å–∫–µ
 def save_data(data):
     with open('data.json', 'w') as file:
         json.dump(data, file)
 
 
 
-# «‡ÔÛÒÍ ·ÓÚ‡
+# –ó–∞–ø—É—Å–∫ –±–æ—Ç–∞
 if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
     bot.polling()
