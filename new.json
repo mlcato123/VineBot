@@ -1,0 +1,10 @@
+{
+"idPhoto": "id_photo",        
+"cell":"cell",                  
+"numVine":"num_vine",           
+"sort":"sort",                  
+"year":"year",                  
+"typePhoto":"type_photo",       
+"sick":"yes/no",                
+"typeSick":""                   
+}
